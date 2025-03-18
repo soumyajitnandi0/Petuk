@@ -74,25 +74,23 @@ class MenuAdapter(
     override fun getItemCount() = menuItems.size
 
     // Function to get cart items
-    // Function to get cart items
-    // Function to get cart items
-    // Function to get cart items
-    // Function to get cart items
     fun getCartItems(): List<CartItem> {
         val result = mutableListOf<CartItem>()
 
         for ((id, quantity) in cartItems) {
-            val menuItem = menuItems.first { it.id == id }
-            result.add(
-                CartItem(
-                    menuItem.id,
-                    menuItem.name,
-                    menuItem.price,
-                    menuItem.isVeg,
-                    false,
-                    quantity
+            // Find the corresponding menu item
+            menuItems.find { it.id == id }?.let { menuItem ->
+                result.add(
+                    CartItem(
+                        menuItem.id,
+                        menuItem.name,
+                        menuItem.price,
+                        menuItem.isVeg,
+                        true, // Set isAvailable to true
+                        quantity
+                    )
                 )
-            )
+            }
         }
 
         return result

@@ -27,6 +27,7 @@ data class CartItem(
         parcel.writeString(id)
         parcel.writeString(name)
         parcel.writeDouble(price)
+        parcel.writeByte(if (isVeg) 1 else 0)
         parcel.writeByte(if (isAvailable) 1 else 0)
         parcel.writeInt(quantity)
     }

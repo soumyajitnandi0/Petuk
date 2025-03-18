@@ -6,7 +6,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import com.example.petuk.CartItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -73,17 +72,10 @@ class CartActivity : AppCompatActivity() {
         })
         recyclerView.adapter = cartAdapter
 
-        // Get cart items from intent (in real app, this would come from a singleton or database)
-        val cartItemsFromIntent = intent.getParcelableArrayListExtra<CartItem>("CART_ITEMS")
-        if (!cartItemsFromIntent.isNullOrEmpty()) {
-            cartItems.addAll(cartItemsFromIntent)
-        } else {
-            // For demo, let's add some sample items
-            cartItems.add(CartItem("1", "Veg Burger", 99.0, true,true, 2))
-            cartItems.add(CartItem("3", "French Fries", 79.0, true,true, 1))
-            cartItems.add(CartItem("4", "Cold Coffee", 129.0, true,true, 1))
-        }
+        // Load cart items from intent
+        loadCartItems()
 
+        // Update UI based on cart state
         updateCartUI()
 
         // Coupon application
@@ -104,6 +96,22 @@ class CartActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun loadCartItems() {
+        // Clear existing items
+        cartItems.clear()
+
+        // Get cart items from intent
+        val cartItemsFromIntent = intent.getParcelableArrayListExtra<CartItem>("CART_ITEMS")
+        if (cartItemsFromIntent != null && cartItemsFromIntent.isNotEmpty()) {
+            cartItems.addAll(cartItemsFromIntent)
+        } else {
+            // For demo, let's add some sample items only if there are no items from intent
+            cartItems.add(CartItem("1", "Veg Burger", 99.0, true, true, 2))
+            cartItems.add(CartItem("3", "French Fries", 79.0, true, true, 1))
+            cartItems.add(CartItem("4", "Cold Coffee", 129.0, true, true, 1))
         }
     }
 
