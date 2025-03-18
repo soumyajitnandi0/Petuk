@@ -5,5 +5,7 @@
     <color name="splash_bg">#FF5722</color> <!-- Customize color -->
     <color name="login_bg">#222831</color> <!-- Dark background -->
     <color name="primary">#FF5722</color> <!-- Orange button color -->
+    <color name="red_btn">#A20000</color> <!-- Customize color -->
+
 
 </resources>

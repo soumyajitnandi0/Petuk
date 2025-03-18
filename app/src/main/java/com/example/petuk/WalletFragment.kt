@@ -18,7 +18,7 @@ class WalletFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_wallet, container, false)
 
         val rewardsText = view.findViewById<TextView>(R.id.tv_rewards)
-        rewardsText.text = "Your current rewards: ₹500"
+        rewardsText.text = "All Time Rewards: ₹368"
 
         return view
     }

@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Petuk"
 include(":app")
- 
+include(":petuk_vendor")

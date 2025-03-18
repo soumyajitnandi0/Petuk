@@ -10,33 +10,49 @@
     android:orientation="vertical"
     tools:context=".SplashScreen">
 
+    <!-- Container for potential animation -->
+    <FrameLayout
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center">
 
-    <ImageView
-        android:id="@+id/imgLogo"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:src="@drawable/baseline_fastfood_24"
-        android:layout_gravity="center"
-        android:scaleType="fitCenter" />
-
+        <ImageView
+            android:id="@+id/imgLogo"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:src="@drawable/baseline_fastfood_24"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/tvAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="PETUK"
-        android:textSize="38sp"
+        android:textSize="44sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-condensed-medium"
+        android:letterSpacing="0.1"
         android:textColor="@color/white"
         android:layout_marginTop="16dp" />
 
+    <!-- Tagline -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="INDIA's #1 Food Cashback App"
+        android:textColor="#E6FFFFFF"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif-light" />
 
     <ProgressBar
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
-        style="?android:attr/progressBarStyleSmallTitle" />
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="32dp"
+        android:indeterminateTint="@color/white"
+        style="?android:attr/progressBarStyle" />
 
 </LinearLayout>
