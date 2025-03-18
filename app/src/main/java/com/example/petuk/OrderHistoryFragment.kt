@@ -1,7 +1,5 @@
 package com.example.petuk
 
-import com.example.petuk.OrderHistoryAdapter
-import com.example.petuk.OrderRepository
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 
 class OrderHistoryFragment : Fragment() {
 
@@ -34,6 +33,8 @@ class OrderHistoryFragment : Fragment() {
         arguments?.let {
             storeId = it.getString("STORE_ID") ?: ""
         }
+        // Initialize repository in onCreate
+        orderRepository = OrderRepository(requireContext())
     }
 
     override fun onCreateView(
@@ -52,6 +53,12 @@ class OrderHistoryFragment : Fragment() {
         // Initialize adapter with empty list
         orderHistoryAdapter = OrderHistoryAdapter(emptyList())
         recyclerView.adapter = orderHistoryAdapter
+
+        // Set up "Browse Menu" button in empty view
+        view.findViewById<MaterialButton>(R.id.btn_go_to_menu)?.setOnClickListener {
+            // Navigate back to menu
+            requireActivity().supportFragmentManager.popBackStack()
+        }
 
         return view
     }
@@ -81,16 +88,6 @@ class OrderHistoryFragment : Fragment() {
             val totalSpent = orders.sumOf { it.amount }
             view?.findViewById<TextView>(R.id.tv_total_orders)?.text = orders.size.toString()
             view?.findViewById<TextView>(R.id.tv_total_spent)?.text = "₹${totalSpent.toInt()}"
-            // Can calculate rewards if needed
         }
     }
 }
-
-// Data class for order history items
-data class OrderItem(
-    val orderId: String,
-    val date: String,
-    val amount: Double,
-    val status: String,
-    val items: String
-)

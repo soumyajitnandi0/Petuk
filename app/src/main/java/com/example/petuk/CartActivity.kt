@@ -96,7 +96,6 @@ class CartActivity : AppCompatActivity() {
         // Place order button
         btnPlaceOrder.setOnClickListener {
             if (cartItems.isNotEmpty()) {
-                showOrderConfirmation()
                 placeOrder()
             } else {
                 Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show()
@@ -107,23 +106,6 @@ class CartActivity : AppCompatActivity() {
         btnBrowseMenu.setOnClickListener {
             finish() // Return to previous activity (menu)
         }
-    }
-
-    private fun showOrderConfirmation() {
-        // In a real app, you might show a dialog here
-        // For this example, we'll just show a toast
-        Toast.makeText(this, "Order placed successfully!", Toast.LENGTH_SHORT).show()
-
-        // Clear the cart after successful order
-        cartItems.clear()
-        appliedCoupon = null
-        updateCartUI()
-
-        // In a real app, you would navigate to a payment screen or order confirmation page
-        // For example:
-        // val intent = Intent(this, OrderConfirmationActivity::class.java)
-        // intent.putExtra("ORDER_TOTAL", calculateTotal())
-        // startActivity(intent)
     }
 
     private fun loadCartItems() {
@@ -232,12 +214,11 @@ class CartActivity : AppCompatActivity() {
         }
     }
 
-    // Updates to CartActivity.kt
     private fun placeOrder() {
         if (cartItems.isNotEmpty()) {
-            val total = calculateSubtotal() + (calculateSubtotal() * TAX_RATE) + DELIVERY_FEE - calculateDiscount(calculateSubtotal())
+            val total = calculateTotal()
 
-            // Save order
+            // Save order using the repository
             val orderRepository = OrderRepository(this)
             val orderId = orderRepository.saveOrder(
                 items = cartItems,
@@ -252,13 +233,11 @@ class CartActivity : AppCompatActivity() {
             cartItems.clear()
             updateCartUI()
 
-            // Optional: Navigate to OrderHistoryFragment
-            // If you want to immediately navigate to order history, you'd need to add that navigation logic here
-            // For example, if this is part of MainActivity that has a BottomNavigationView:
-//             val intent = Intent(this, OrderHistoryFragment::class.java)
-//             intent.putExtra("NAVIGATE_TO", "ORDER_HISTORY")
-//             startActivity(intent)
-//             finish()
+            // Navigate back to main activity with instruction to show order history
+            val intent = Intent()
+            intent.putExtra("SHOW_ORDER_HISTORY", true)
+            setResult(RESULT_OK, intent)
+            finish()
         } else {
             Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show()
         }
