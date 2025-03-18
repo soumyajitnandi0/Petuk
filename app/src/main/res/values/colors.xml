@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="splash_bg">#FF5722</color> <!-- Customize color -->
+    <color name="login_bg">#222831</color> <!-- Dark background -->
+    <color name="primary">#FF5722</color> <!-- Orange button color -->
+
+</resources>
