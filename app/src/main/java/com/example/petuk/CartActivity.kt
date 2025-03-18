@@ -117,10 +117,7 @@ class CartActivity : AppCompatActivity() {
         if (cartItemsFromIntent != null && cartItemsFromIntent.isNotEmpty()) {
             cartItems.addAll(cartItemsFromIntent)
         } else {
-            // For demo, add sample items only if there are no items from intent
-            cartItems.add(CartItem("1", "Veg Burger", 99.0, true, true, 2))
-            cartItems.add(CartItem("3", "French Fries", 79.0, true, true, 1))
-            cartItems.add(CartItem("4", "Cold Coffee", 129.0, true, true, 1))
+            Toast.makeText(this,"Your cart is empty",Toast.LENGTH_SHORT).show()
         }
     }
 
