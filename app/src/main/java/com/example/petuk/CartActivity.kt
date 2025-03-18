@@ -1,5 +1,6 @@
 package com.example.petuk
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -21,9 +22,11 @@ class CartActivity : AppCompatActivity() {
     private lateinit var tvDeliveryFee: TextView
     private lateinit var tvTotal: TextView
     private lateinit var tvDiscount: TextView
+    private lateinit var tvSavings: TextView
     private lateinit var etCouponCode: EditText
     private lateinit var btnApplyCoupon: Button
     private lateinit var btnPlaceOrder: MaterialButton
+    private lateinit var btnBrowseMenu: MaterialButton
 
     private val cartItems = mutableListOf<CartItem>()
     private var appliedCoupon: Coupon? = null
@@ -45,9 +48,11 @@ class CartActivity : AppCompatActivity() {
         tvDeliveryFee = findViewById(R.id.tv_delivery_fee)
         tvTotal = findViewById(R.id.tv_total)
         tvDiscount = findViewById(R.id.tv_discount)
+        tvSavings = findViewById(R.id.tv_savings)
         etCouponCode = findViewById(R.id.et_coupon_code)
         btnApplyCoupon = findViewById(R.id.btn_apply_coupon)
         btnPlaceOrder = findViewById(R.id.btn_place_order)
+        btnBrowseMenu = findViewById(R.id.btn_browse_menu)
 
         // Setup toolbar
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
@@ -91,12 +96,34 @@ class CartActivity : AppCompatActivity() {
         // Place order button
         btnPlaceOrder.setOnClickListener {
             if (cartItems.isNotEmpty()) {
-                Toast.makeText(this, "Order placed successfully!", Toast.LENGTH_SHORT).show()
-                // In a real app, you would navigate to a payment screen or order confirmation page
+                showOrderConfirmation()
+                placeOrder()
             } else {
                 Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show()
             }
         }
+
+        // Browse menu button
+        btnBrowseMenu.setOnClickListener {
+            finish() // Return to previous activity (menu)
+        }
+    }
+
+    private fun showOrderConfirmation() {
+        // In a real app, you might show a dialog here
+        // For this example, we'll just show a toast
+        Toast.makeText(this, "Order placed successfully!", Toast.LENGTH_SHORT).show()
+
+        // Clear the cart after successful order
+        cartItems.clear()
+        appliedCoupon = null
+        updateCartUI()
+
+        // In a real app, you would navigate to a payment screen or order confirmation page
+        // For example:
+        // val intent = Intent(this, OrderConfirmationActivity::class.java)
+        // intent.putExtra("ORDER_TOTAL", calculateTotal())
+        // startActivity(intent)
     }
 
     private fun loadCartItems() {
@@ -108,7 +135,7 @@ class CartActivity : AppCompatActivity() {
         if (cartItemsFromIntent != null && cartItemsFromIntent.isNotEmpty()) {
             cartItems.addAll(cartItemsFromIntent)
         } else {
-            // For demo, let's add some sample items only if there are no items from intent
+            // For demo, add sample items only if there are no items from intent
             cartItems.add(CartItem("1", "Veg Burger", 99.0, true, true, 2))
             cartItems.add(CartItem("3", "French Fries", 79.0, true, true, 1))
             cartItems.add(CartItem("4", "Cold Coffee", 129.0, true, true, 1))
@@ -139,6 +166,12 @@ class CartActivity : AppCompatActivity() {
             tvDeliveryFee.text = "₹${DELIVERY_FEE.toInt()}"
             tvDiscount.text = "-₹${discount.toInt()}"
             tvTotal.text = "₹${total.toInt()}"
+
+            // Update savings message
+            tvSavings.text = "You're saving ₹${discount.toInt()} on this order"
+
+            // Update place order button text
+            btnPlaceOrder.text = "Place Order • ₹${total.toInt()}"
         }
     }
 
@@ -153,6 +186,13 @@ class CartActivity : AppCompatActivity() {
                 CouponType.FIXED -> it.value.coerceAtMost(subtotal)
             }
         } ?: 0.0
+    }
+
+    private fun calculateTotal(): Double {
+        val subtotal = calculateSubtotal()
+        val taxes = subtotal * TAX_RATE
+        val discount = calculateDiscount(subtotal)
+        return subtotal + taxes + DELIVERY_FEE - discount
     }
 
     private fun applyCoupon(code: String) {
@@ -189,6 +229,38 @@ class CartActivity : AppCompatActivity() {
                 item.quantity = quantity
             }
             updateCartUI()
+        }
+    }
+
+    // Updates to CartActivity.kt
+    private fun placeOrder() {
+        if (cartItems.isNotEmpty()) {
+            val total = calculateSubtotal() + (calculateSubtotal() * TAX_RATE) + DELIVERY_FEE - calculateDiscount(calculateSubtotal())
+
+            // Save order
+            val orderRepository = OrderRepository(this)
+            val orderId = orderRepository.saveOrder(
+                items = cartItems,
+                total = total,
+                couponApplied = appliedCoupon?.code
+            )
+
+            // Show success message with order ID
+            Toast.makeText(this, "Order placed successfully! Order ID: $orderId", Toast.LENGTH_SHORT).show()
+
+            // Clear cart
+            cartItems.clear()
+            updateCartUI()
+
+            // Optional: Navigate to OrderHistoryFragment
+            // If you want to immediately navigate to order history, you'd need to add that navigation logic here
+            // For example, if this is part of MainActivity that has a BottomNavigationView:
+//             val intent = Intent(this, OrderHistoryFragment::class.java)
+//             intent.putExtra("NAVIGATE_TO", "ORDER_HISTORY")
+//             startActivity(intent)
+//             finish()
+        } else {
+            Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show()
         }
     }
 }

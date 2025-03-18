@@ -3,45 +3,40 @@ package com.example.petuk
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-class OrderHistoryAdapter(private val orderItems: List<OrderItem>) :
+class OrderHistoryAdapter(private val orders: List<OrderItem>) :
     RecyclerView.Adapter<OrderHistoryAdapter.OrderViewHolder>() {
-
-    class OrderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val orderId: TextView = view.findViewById(R.id.tv_order_id)
-        val status: TextView = view.findViewById(R.id.tv_status)
-        val amount: TextView = view.findViewById(R.id.tv_amount)
-        val date: TextView = view.findViewById(R.id.tv_date)
-        val viewDetailsButton: Button = view.findViewById(R.id.btn_view_details)
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_order, parent, false)
+            .inflate(R.layout.item_order_history, parent, false)
         return OrderViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: OrderViewHolder, position: Int) {
-        val order = orderItems[position]
-
-        holder.orderId.text = "Order #${order.orderId}"
-        holder.status.text = order.status
-        holder.amount.text = "Amount: ₹${order.amount.toInt()}"
-        holder.date.text = "Date: ${order.date}"
-
-        holder.viewDetailsButton.setOnClickListener {
-            // Implement view details functionality
-            Toast.makeText(
-                holder.itemView.context,
-                "Viewing details for order ${order.orderId}",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        val order = orders[position]
+        holder.bind(order)
     }
 
-    override fun getItemCount() = orderItems.size
+    override fun getItemCount(): Int {
+        return orders.size
+    }
+
+    class OrderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvOrderId: TextView = itemView.findViewById(R.id.tv_order_id)
+        private val tvOrderDate: TextView = itemView.findViewById(R.id.tv_order_date)
+        private val tvOrderAmount: TextView = itemView.findViewById(R.id.tv_order_amount)
+        private val tvOrderStatus: TextView = itemView.findViewById(R.id.tv_order_status)
+        private val tvOrderItems: TextView = itemView.findViewById(R.id.tv_order_items)
+
+        fun bind(order: OrderItem) {
+            tvOrderId.text = "Order ID: ${order.orderId}"
+            tvOrderDate.text = "Date: ${order.date}"
+            tvOrderAmount.text = "Amount: ₹${order.amount}"
+            tvOrderStatus.text = "Status: ${order.status}"
+            tvOrderItems.text = "Items: ${order.items}"
+        }
+    }
 }
