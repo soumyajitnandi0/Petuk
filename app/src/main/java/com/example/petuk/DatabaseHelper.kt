@@ -4,35 +4,49 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 
+class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
-class DatabaseHelper(private val context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+    companion object {
+        private const val TAG = "DatabaseHelper"
+        private const val DATABASE_NAME = "PetukUserDB.db"
+        private const val DATABASE_VERSION = 1
+        private const val TABLE_NAME = "users"
+        private const val COLUMN_ID = "id"
+        private const val COLUMN_NAME = "name"
+        private const val COLUMN_EMAIL = "email"
+        private const val COLUMN_PASSWORD = "password"
+    }
 
-        companion object{
+    override fun onCreate(db: SQLiteDatabase) {
+        try {
+            val createTableQuery = """
+                CREATE TABLE $TABLE_NAME (
+                    $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    $COLUMN_NAME TEXT NOT NULL,
+                    $COLUMN_EMAIL TEXT NOT NULL UNIQUE,
+                    $COLUMN_PASSWORD TEXT NOT NULL
+                )
+            """.trimIndent()
 
-            private const val DATABASE_NAME = "UserDatabase.db"
-            private const val DATABASE_VERSION = 1
-            private const val TABLE_NAME = "users"
-            private const val COLUMN_ID = "id"
-            private const val COLUMN_NAME = "name"
-            private const val COLUMN_EMAIL = "email"
-            private const val COLUMN_PASSWORD = "password"
-
+            db.execSQL(createTableQuery)
+            Log.d(TAG, "Database table created successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating database table", e)
         }
+    }
 
-        override fun onCreate(db: SQLiteDatabase?) {
-            val createTableQuery = "CREATE TABLE $TABLE_NAME ($COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT, $COLUMN_NAME TEXT, $COLUMN_EMAIL TEXT,$COLUMN_PASSWORD TEXT)"
-            db?.execSQL(createTableQuery)
-        }
-
-        override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-            val dropTableQuery = "DROP TABLE IF EXISTS $TABLE_NAME"
-            db?.execSQL(dropTableQuery)
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        try {
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
             onCreate(db)
+            Log.d(TAG, "Database upgraded from $oldVersion to $newVersion")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error upgrading database", e)
         }
+    }
 
-
-    // Add to DatabaseHelper.kt
     private fun hashPassword(password: String): String {
         return try {
             val messageDigest = java.security.MessageDigest.getInstance("SHA-256")
@@ -47,43 +61,99 @@ class DatabaseHelper(private val context: Context) : SQLiteOpenHelper(context, D
 
             hexString.toString()
         } catch (e: Exception) {
+            Log.e(TAG, "Error hashing password", e)
             // Fallback if hashing fails
             password
         }
     }
 
-    // Update insertUser method
     fun insertUser(name: String, email: String, password: String): Long {
-        val hashedPassword = hashPassword(password)
-        val values = ContentValues().apply {
-            put(COLUMN_NAME, name)
-            put(COLUMN_EMAIL, email)
-            put(COLUMN_PASSWORD, hashedPassword)
+        var db: SQLiteDatabase? = null
+        try {
+            val hashedPassword = hashPassword(password)
+            val values = ContentValues().apply {
+                put(COLUMN_NAME, name)
+                put(COLUMN_EMAIL, email)
+                put(COLUMN_PASSWORD, hashedPassword)
+            }
+
+            db = this.writableDatabase
+            val result = db.insert(TABLE_NAME, null, values)
+            Log.d(TAG, "User insertion result: $result")
+            return result
+        } catch (e: Exception) {
+            Log.e(TAG, "Error inserting user", e)
+            return -1
+        } finally {
+            db?.close()
         }
-        val db = writableDatabase
-        return db.insert(TABLE_NAME, null, values)
     }
 
-    // Function to check if a user exists in the database
     fun isEmailExists(email: String): Boolean {
-        val db = readableDatabase
-        val selection = "$COLUMN_EMAIL = ?"
-        val selectionArguments = arrayOf(email)
-        val cursor = db.query(TABLE_NAME, null, selection, selectionArguments, null, null, null)
-        val emailExists = cursor.count > 0
-        cursor.close()
-        return emailExists
+        var db: SQLiteDatabase? = null
+        var cursor: android.database.Cursor? = null
+        try {
+            db = this.readableDatabase
+            val query = "SELECT * FROM $TABLE_NAME WHERE $COLUMN_EMAIL = ?"
+            cursor = db.rawQuery(query, arrayOf(email))
+            val exists = cursor.count > 0
+            Log.d(TAG, "Email exists check: $email - $exists")
+            return exists
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking if email exists", e)
+            return false
+        } finally {
+            cursor?.close()
+            db?.close()
+        }
     }
 
-    // Update readUser method
     fun readUser(email: String, password: String): Boolean {
-        val hashedPassword = hashPassword(password)
-        val db = readableDatabase
-        val selection = "$COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?"
-        val selectionArguments = arrayOf(email, hashedPassword)
-        val cursor = db.query(TABLE_NAME, null, selection, selectionArguments, null, null, null)
-        val userExists = cursor.count > 0
-        cursor.close()
-        return userExists
+        var db: SQLiteDatabase? = null
+        var cursor: android.database.Cursor? = null
+        try {
+            val hashedPassword = hashPassword(password)
+            db = this.readableDatabase
+            val query = "SELECT * FROM $TABLE_NAME WHERE $COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?"
+            cursor = db.rawQuery(query, arrayOf(email, hashedPassword))
+            val exists = cursor.count > 0
+            Log.d(TAG, "User login attempt: $email - Success: $exists")
+            return exists
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking user credentials", e)
+            return false
+        } finally {
+            cursor?.close()
+            db?.close()
+        }
     }
+
+    // For debugging: get all users
+    fun getAllUsers(): List<String> {
+        val userList = mutableListOf<String>()
+        var db: SQLiteDatabase? = null
+        var cursor: android.database.Cursor? = null
+        try {
+            db = this.readableDatabase
+            cursor = db.rawQuery("SELECT * FROM $TABLE_NAME", null)
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID))
+                    val name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME))
+                    val email = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL))
+                    userList.add("ID: $id, Name: $name, Email: $email")
+                } while (cursor.moveToNext())
+            }
+
+            Log.d(TAG, "Total users in database: ${userList.size}")
+            return userList
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting all users", e)
+            return emptyList()
+        } finally {
+            cursor?.close()
+            db?.close()
+        }
     }
+}

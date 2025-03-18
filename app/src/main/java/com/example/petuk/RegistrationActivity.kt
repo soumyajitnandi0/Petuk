@@ -2,85 +2,107 @@ package com.example.petuk
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.petuk.databinding.ActivityRegistrationBinding
 
 class RegistrationActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityRegistrationBinding
     private lateinit var databaseHelper: DatabaseHelper
+    private val TAG = "RegistrationActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding= ActivityRegistrationBinding.inflate(layoutInflater)
+        binding = ActivityRegistrationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        databaseHelper = DatabaseHelper(this)
-
-        val btnRegister = findViewById<Button>(R.id.btnRegister)
-        val tvLogin = findViewById<TextView>(R.id.tvLogin)
-
-        btnRegister.setOnClickListener {
-            val name= binding.etFullName.text.toString()
-            val email = binding.etEmail.text.toString()
-            val password = binding.etPassword.text.toString()
-            registerDatabase(name, email, password)
+        try {
+            databaseHelper = DatabaseHelper(this)
+            Log.d(TAG, "Database helper initialized")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing database helper", e)
+            Toast.makeText(this, "Database initialization error", Toast.LENGTH_LONG).show()
         }
 
-        tvLogin.setOnClickListener {
-            startActivity(Intent(this, LoginActivity::class.java))
+        binding.btnRegister.setOnClickListener {
+            try {
+                val name = binding.etFullName.text.toString().trim()
+                val email = binding.etEmail.text.toString().trim()
+                val password = binding.etPassword.text.toString().trim()
+                val confirmPassword = binding.etConfirmPassword.text.toString().trim()
+                Log.d(TAG, "Registration attempt for email: $email")
+                registerDatabase(name, email, password, confirmPassword)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during register button click", e)
+                Toast.makeText(this, "Register button error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
 
+        binding.tvLogin.setOnClickListener {
+            try {
+                startActivity(Intent(this, LoginActivity::class.java))
+            } catch (e: Exception) {
+                Log.e(TAG, "Error navigating to login", e)
+                Toast.makeText(this, "Navigation error", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
-    fun String.isValidEmail(): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    private fun registerDatabase(name: String, email: String, password: String, confirmPassword: String) {
+        try {
+            if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            if (!isValidEmail(email)) {
+                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            if (!isValidPassword(password)) {
+                Toast.makeText(this, "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            if (password != confirmPassword) {
+                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val emailExists = databaseHelper.isEmailExists(email)
+            Log.d(TAG, "Email exists check result: $emailExists")
+
+            if (emailExists) {
+                Toast.makeText(this, "Email already exists", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val insertedRowId = databaseHelper.insertUser(name, email, password)
+            Log.d(TAG, "User insertion result: $insertedRowId")
+
+            if (insertedRowId != -1L) {
+                Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                Toast.makeText(this, "Registration Failed - Database Error", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in registerDatabase function", e)
+            Toast.makeText(this, "Registration process error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
-    fun String.isValidPassword(): Boolean {
-        return this.length >= 8
+
+    private fun isValidEmail(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
-    private fun registerDatabase(name:String, email: String, password: String) {
-        val confirmPassword = binding.etConfirmPassword.text.toString()
-
-        if (!email.isValidEmail()) {
-            Toast.makeText(applicationContext, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (!password.isValidPassword()) {
-            Toast.makeText(applicationContext, "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            Toast.makeText(applicationContext, "Please fill all fields", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (password != confirmPassword) {
-            Toast.makeText(applicationContext, "Passwords do not match", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (databaseHelper.isEmailExists(email)) {
-            Toast.makeText(applicationContext, "Email already exists", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val insertedRowid = databaseHelper.insertUser(name, email, password)
-        if (insertedRowid != -1L){
-            Toast.makeText(applicationContext, "Registration Successful", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this@RegistrationActivity, LoginActivity::class.java))
-            finish()
-        } else {
-            Toast.makeText(applicationContext, "Signup Failed", Toast.LENGTH_SHORT).show()
-        }
+    private fun isValidPassword(password: String): Boolean {
+        return password.length >= 8
     }
 }

@@ -2,65 +2,78 @@ package com.example.petuk
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.petuk.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityLoginBinding
     private lateinit var databaseHelper: DatabaseHelper
+    private val TAG = "LoginActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding= ActivityLoginBinding.inflate(layoutInflater)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        databaseHelper = DatabaseHelper(this)
-
-        val btnLogin = findViewById<Button>(R.id.btnLogin)
-        val tvRegister = findViewById<TextView>(R.id.tvRegister)
-
-        btnLogin.setOnClickListener {
-            val email = binding.etEmail.text.toString()
-            val password = binding.etPassword.text.toString()
-            loginDatabase(email, password)
+        try {
+            databaseHelper = DatabaseHelper(this)
+            Log.d(TAG, "Database helper initialized")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing database helper", e)
+            Toast.makeText(this, "Database initialization error", Toast.LENGTH_LONG).show()
         }
 
-        tvRegister.setOnClickListener {
-            startActivity(Intent(this, RegistrationActivity::class.java))
+        binding.btnLogin.setOnClickListener {
+            try {
+                val email = binding.etEmail.text.toString().trim()
+                val password = binding.etPassword.text.toString().trim()
+                Log.d(TAG, "Login attempt for email: $email")
+                loginDatabase(email, password)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during login button click", e)
+                Toast.makeText(this, "Login button error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
 
-    }
-    fun String.isValidEmail(): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
-    }
-    fun String.isValidPassword(): Boolean {
-        return this.length >= 8
+        binding.tvRegister.setOnClickListener {
+            try {
+                startActivity(Intent(this, RegistrationActivity::class.java))
+            } catch (e: Exception) {
+                Log.e(TAG, "Error navigating to registration", e)
+                Toast.makeText(this, "Navigation error", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun loginDatabase(email: String, password: String) {
+        try {
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                return
+            }
 
+            // Debug: print all users in database
+            val allUsers = databaseHelper.getAllUsers()
+            Log.d(TAG, "All users in database: $allUsers")
 
+            val userExists = databaseHelper.readUser(email, password)
+            Log.d(TAG, "User exists check result: $userExists")
 
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(applicationContext, "Please fill all fields", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val userExists = databaseHelper.readUser(email, password)
-        if (userExists) {
-            Toast.makeText(applicationContext,"Logged in Successfully", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
-            finish()
-        } else {
-            Toast.makeText(applicationContext,"Login Failed", Toast.LENGTH_SHORT).show()
+            if (userExists) {
+                Toast.makeText(this, "Logged in Successfully", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, HomeActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                Toast.makeText(this, "Login Failed - Invalid credentials", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in loginDatabase function", e)
+            Toast.makeText(this, "Login process error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 }
