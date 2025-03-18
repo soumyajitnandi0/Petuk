@@ -38,16 +38,29 @@ class LoginActivity : AppCompatActivity() {
         }
 
     }
+    fun String.isValidEmail(): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    }
+    fun String.isValidPassword(): Boolean {
+        return this.length >= 8
+    }
+
     private fun loginDatabase(email: String, password: String) {
+
+
+
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(applicationContext, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val userExists = databaseHelper.readUser(email, password)
         if (userExists) {
             Toast.makeText(applicationContext,"Logged in Successfully", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this@LoginActivity, StoreFragment::class.java))
+            startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
             finish()
         } else {
             Toast.makeText(applicationContext,"Login Failed", Toast.LENGTH_SHORT).show()
         }
-
-
     }
 }

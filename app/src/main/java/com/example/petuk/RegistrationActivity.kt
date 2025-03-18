@@ -39,7 +39,41 @@ class RegistrationActivity : AppCompatActivity() {
         }
 
     }
+
+    fun String.isValidEmail(): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    }
+    fun String.isValidPassword(): Boolean {
+        return this.length >= 8
+    }
+
     private fun registerDatabase(name:String, email: String, password: String) {
+        val confirmPassword = binding.etConfirmPassword.text.toString()
+
+        if (!email.isValidEmail()) {
+            Toast.makeText(applicationContext, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!password.isValidPassword()) {
+            Toast.makeText(applicationContext, "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            Toast.makeText(applicationContext, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (password != confirmPassword) {
+            Toast.makeText(applicationContext, "Passwords do not match", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (databaseHelper.isEmailExists(email)) {
+            Toast.makeText(applicationContext, "Email already exists", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val insertedRowid = databaseHelper.insertUser(name, email, password)
         if (insertedRowid != -1L){
             Toast.makeText(applicationContext, "Registration Successful", Toast.LENGTH_SHORT).show()

@@ -30,22 +30,60 @@ class DatabaseHelper(private val context: Context) : SQLiteOpenHelper(context, D
             db?.execSQL(dropTableQuery)
             onCreate(db)
         }
-        fun insertUser(name: String,email: String, password: String): Long {
-            val values = ContentValues().apply {
-                put(COLUMN_NAME, name)
-                put(COLUMN_EMAIL, email)
-                put(COLUMN_PASSWORD, password)
+
+
+    // Add to DatabaseHelper.kt
+    private fun hashPassword(password: String): String {
+        return try {
+            val messageDigest = java.security.MessageDigest.getInstance("SHA-256")
+            val hashBytes = messageDigest.digest(password.toByteArray())
+            val hexString = StringBuilder()
+
+            for (byte in hashBytes) {
+                val hex = Integer.toHexString(0xff and byte.toInt())
+                if (hex.length == 1) hexString.append('0')
+                hexString.append(hex)
             }
-            val db = writableDatabase
-            return db.insert(TABLE_NAME, null, values)
+
+            hexString.toString()
+        } catch (e: Exception) {
+            // Fallback if hashing fails
+            password
         }
-        fun readUser(email: String,password: String): Boolean {
-            val db = readableDatabase
-            val selection = "$COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?"
-            val selectionArguments = arrayOf(email, password)
-            val cursor = db.query(TABLE_NAME, null, selection, selectionArguments, null, null, null)
-            val userExists = cursor.count > 0
-            cursor.close()
-            return userExists
+    }
+
+    // Update insertUser method
+    fun insertUser(name: String, email: String, password: String): Long {
+        val hashedPassword = hashPassword(password)
+        val values = ContentValues().apply {
+            put(COLUMN_NAME, name)
+            put(COLUMN_EMAIL, email)
+            put(COLUMN_PASSWORD, hashedPassword)
         }
+        val db = writableDatabase
+        return db.insert(TABLE_NAME, null, values)
+    }
+
+    // Function to check if a user exists in the database
+    fun isEmailExists(email: String): Boolean {
+        val db = readableDatabase
+        val selection = "$COLUMN_EMAIL = ?"
+        val selectionArguments = arrayOf(email)
+        val cursor = db.query(TABLE_NAME, null, selection, selectionArguments, null, null, null)
+        val emailExists = cursor.count > 0
+        cursor.close()
+        return emailExists
+    }
+
+    // Update readUser method
+    fun readUser(email: String, password: String): Boolean {
+        val hashedPassword = hashPassword(password)
+        val db = readableDatabase
+        val selection = "$COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?"
+        val selectionArguments = arrayOf(email, hashedPassword)
+        val cursor = db.query(TABLE_NAME, null, selection, selectionArguments, null, null, null)
+        val userExists = cursor.count > 0
+        cursor.close()
+        return userExists
+    }
     }
