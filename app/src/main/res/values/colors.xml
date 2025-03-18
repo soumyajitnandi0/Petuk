@@ -6,6 +6,8 @@
     <color name="login_bg">#222831</color> <!-- Dark background -->
     <color name="primary">#FF5722</color> <!-- Orange button color -->
     <color name="red_btn">#A20000</color> <!-- Customize color -->
+    <color name="veg_green">#388E3C</color>
+    <color name="non_veg_red">#D32F2F</color>
 
 
 </resources>
