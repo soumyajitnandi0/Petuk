@@ -17,6 +17,7 @@ class OrderHistoryFragment : Fragment() {
     private lateinit var emptyView: View
     private lateinit var orderHistoryAdapter: OrderHistoryAdapter
     private lateinit var orderRepository: OrderRepository
+    private lateinit var rewardRepository: RewardRepository
 
     companion object {
         fun newInstance(storeId: String): OrderHistoryFragment {
@@ -33,8 +34,9 @@ class OrderHistoryFragment : Fragment() {
         arguments?.let {
             storeId = it.getString("STORE_ID") ?: ""
         }
-        // Initialize repository in onCreate
+        // Initialize repositories in onCreate
         orderRepository = OrderRepository(requireContext())
+        rewardRepository = RewardRepository(requireContext())
     }
 
     override fun onCreateView(
@@ -86,8 +88,13 @@ class OrderHistoryFragment : Fragment() {
 
             // Update stats
             val totalSpent = orders.sumOf { it.amount }
+            val totalRewards = totalSpent * 0.10 // Calculate rewards as 10% of total spent
+
             view?.findViewById<TextView>(R.id.tv_total_orders)?.text = orders.size.toString()
             view?.findViewById<TextView>(R.id.tv_total_spent)?.text = "₹${totalSpent.toInt()}"
+
+            // Update rewards display in the stats card
+            view?.findViewById<TextView>(R.id.tv_rewards_earned)?.text = "₹${totalRewards.toInt()}"
         }
     }
 }

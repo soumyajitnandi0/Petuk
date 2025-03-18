@@ -18,7 +18,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_marginTop="80dp"
-            android:src="@drawable/baseline_fastfood_24_white"
+            android:src="@drawable/logo"
             android:layout_marginBottom="40dp" />
 
         <!-- Registration Title -->

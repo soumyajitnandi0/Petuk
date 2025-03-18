@@ -223,8 +223,20 @@ class CartActivity : AppCompatActivity() {
                 couponApplied = appliedCoupon?.code
             )
 
-            // Show success message with order ID
-            Toast.makeText(this, "Order placed successfully! Order ID: $orderId", Toast.LENGTH_SHORT).show()
+            // Add rewards (10% of total)
+            val rewardRepository = RewardRepository(this)
+            val rewardAmount = rewardRepository.addReward(
+                orderId = orderId,
+                storeId = "current_store_id", // In a real app, pass actual store ID
+                orderAmount = total
+            )
+
+            // Show success message with order ID and rewards earned
+            Toast.makeText(
+                this,
+                "Order placed successfully! Order ID: $orderId\nYou earned ₹${rewardAmount.toInt()} in rewards!",
+                Toast.LENGTH_LONG
+            ).show()
 
             // Clear cart
             cartItems.clear()
