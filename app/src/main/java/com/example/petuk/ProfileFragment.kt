@@ -62,6 +62,15 @@ class ProfileFragment : Fragment() {
         return view
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Reload user data on resume to reflect any changes made in EditProfileActivity
+        val userEmail = sharedPreferences.getString("user_email", "") ?: ""
+        if (userEmail.isNotEmpty()) {
+            loadUserData(userEmail)
+        }
+    }
+
     private fun initializeViews(view: View) {
         usernameTextView = view.findViewById(R.id.tv_username)
         emailTextView = view.findViewById(R.id.tv_user_email)
@@ -122,7 +131,9 @@ class ProfileFragment : Fragment() {
 
         // Edit profile button
         editProfileButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Edit Profile feature coming soon", Toast.LENGTH_SHORT).show()
+            // Navigate to the EditProfileActivity
+            val intent = Intent(requireActivity(), EditProfileActivity::class.java)
+            startActivity(intent)
         }
 
         // Account info section
@@ -225,12 +236,8 @@ class ProfileFragment : Fragment() {
             .show()
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Refresh user data when fragment becomes visible again
-        val userEmail = sharedPreferences.getString("user_email", "") ?: ""
-        if (userEmail.isNotEmpty()) {
-            loadUserData(userEmail)
-        }
+    companion object {
+        @JvmStatic
+        fun newInstance() = ProfileFragment()
     }
 }
