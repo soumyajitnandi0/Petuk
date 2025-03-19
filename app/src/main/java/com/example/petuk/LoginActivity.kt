@@ -1,5 +1,6 @@
 package com.example.petuk
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -64,6 +65,23 @@ class LoginActivity : AppCompatActivity() {
             Log.d(TAG, "User exists check result: $userExists")
 
             if (userExists) {
+                // Get additional user info
+                val userInfo = databaseHelper.getUserByEmail(email)
+
+                // Save comprehensive user session data
+                val sharedPreferences = getSharedPreferences("PetukPrefs", Context.MODE_PRIVATE)
+                with(sharedPreferences.edit()) {
+                    putString("user_email", email)
+                    putString("user_name", userInfo?.first ?: "User")
+                    putString("last_login", System.currentTimeMillis().toString())
+                    if (!sharedPreferences.contains("account_created_date")) {
+                        // Set account creation date if first login
+                        putString("account_created_date", java.text.SimpleDateFormat("yyyy-MM-dd",
+                            java.util.Locale.getDefault()).format(java.util.Date()))
+                    }
+                    apply()
+                }
+
                 Toast.makeText(this, "Logged in Successfully", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, HomeActivity::class.java)
                 startActivity(intent)

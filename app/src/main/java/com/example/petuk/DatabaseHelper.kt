@@ -156,4 +156,124 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             db?.close()
         }
     }
+
+    // Add these methods to your existing DatabaseHelper.kt class
+
+    fun getUserByEmail(email: String): Pair<String, String>? {
+        var db: SQLiteDatabase? = null
+        var cursor: android.database.Cursor? = null
+        try {
+            db = this.readableDatabase
+            val query = "SELECT $COLUMN_NAME, $COLUMN_EMAIL FROM $TABLE_NAME WHERE $COLUMN_EMAIL = ?"
+            cursor = db.rawQuery(query, arrayOf(email))
+
+            if (cursor != null && cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(COLUMN_NAME)
+                val emailIndex = cursor.getColumnIndex(COLUMN_EMAIL)
+
+                if (nameIndex != -1 && emailIndex != -1) {
+                    val name = cursor.getString(nameIndex)
+                    val userEmail = cursor.getString(emailIndex)
+                    Log.d(TAG, "User found: $name, $userEmail")
+                    return Pair(name, userEmail)
+                }
+            }
+            Log.d(TAG, "No user found with email: $email")
+            return null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting user by email", e)
+            return null
+        } finally {
+            cursor?.close()
+            db?.close()
+        }
+    }
+
+    fun updateUserProfile(email: String, newName: String): Boolean {
+        var db: SQLiteDatabase? = null
+        try {
+            db = this.writableDatabase
+            val values = ContentValues().apply {
+                put(COLUMN_NAME, newName)
+            }
+
+            val rowsAffected = db.update(TABLE_NAME, values, "$COLUMN_EMAIL = ?", arrayOf(email))
+            Log.d(TAG, "Profile update result: $rowsAffected rows affected")
+            return rowsAffected > 0
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating user profile", e)
+            return false
+        } finally {
+            db?.close()
+        }
+    }
+
+    fun updateUserPassword(email: String, oldPassword: String, newPassword: String): Boolean {
+        var db: SQLiteDatabase? = null
+        var cursor: android.database.Cursor? = null
+        try {
+            // First verify old password
+            val hashedOldPassword = hashPassword(oldPassword)
+            db = this.readableDatabase
+            val query = "SELECT * FROM $TABLE_NAME WHERE $COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?"
+            cursor = db.rawQuery(query, arrayOf(email, hashedOldPassword))
+
+            if (cursor != null && cursor.count > 0) {
+                // Old password is correct, update to new password
+                cursor.close()
+                db.close()
+
+                db = this.writableDatabase
+                val hashedNewPassword = hashPassword(newPassword)
+                val values = ContentValues().apply {
+                    put(COLUMN_PASSWORD, hashedNewPassword)
+                }
+
+                val rowsAffected = db.update(TABLE_NAME, values, "$COLUMN_EMAIL = ?", arrayOf(email))
+                Log.d(TAG, "Password update result: $rowsAffected rows affected")
+                return rowsAffected > 0
+            } else {
+                Log.d(TAG, "Password update failed: old password incorrect")
+                return false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating user password", e)
+            return false
+        } finally {
+            cursor?.close()
+            db?.close()
+        }
+    }
+
+    fun deleteUserAccount(email: String, password: String): Boolean {
+        var db: SQLiteDatabase? = null
+        var cursor: android.database.Cursor? = null
+        try {
+            // First verify password
+            val hashedPassword = hashPassword(password)
+            db = this.readableDatabase
+            val query = "SELECT * FROM $TABLE_NAME WHERE $COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?"
+            cursor = db.rawQuery(query, arrayOf(email, hashedPassword))
+
+            if (cursor != null && cursor.count > 0) {
+                // Password is correct, delete account
+                cursor.close()
+                db.close()
+
+                db = this.writableDatabase
+                val rowsAffected = db.delete(TABLE_NAME, "$COLUMN_EMAIL = ?", arrayOf(email))
+                Log.d(TAG, "Account deletion result: $rowsAffected rows affected")
+                return rowsAffected > 0
+            } else {
+                Log.d(TAG, "Account deletion failed: password incorrect")
+                return false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting user account", e)
+            return false
+        } finally {
+            cursor?.close()
+            db?.close()
+        }
+    }
 }
