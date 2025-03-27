@@ -9,6 +9,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Petuk">
         <activity
+            android:name=".VendorRegistrationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".VendorLoginActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

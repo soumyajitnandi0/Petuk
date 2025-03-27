@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/login_bg"
-    tools:context=".EditProfileActivity"
+    tools:context=".activities.EditProfileActivity"
     android:fitsSystemWindows="true">
 
 
