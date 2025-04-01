@@ -8,7 +8,7 @@
     android:gravity="center"
     android:background="@color/splash_bg"
     android:orientation="vertical"
-    tools:context=".activities.SplashScreen">
+    tools:context=".view.SplashScreen">
 
     <!-- Container for potential animation -->
     <FrameLayout

@@ -20,28 +20,28 @@
         android:theme="@style/Theme.Petuk"
         tools:targetApi="31">
         <activity
-            android:name=".activities.EditProfileActivity"
+            android:name=".view.EditProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.CartActivity"
+            android:name=".view.CartActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.EnterStore"
+            android:name=".view.EnterStore"
             android:exported="false" />
         <activity
-            android:name=".activities.HomeActivity"
+            android:name=".view.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.RegistrationActivity"
+            android:name=".view.RegistrationActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.LoginActivity"
+            android:name=".view.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".view.MainActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.SplashScreen"
+            android:name=".view.SplashScreen"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

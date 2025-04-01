@@ -2,8 +2,6 @@ package com.example.petuk.repository
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.petuk.model.CartItem
-import com.example.petuk.model.OrderItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
